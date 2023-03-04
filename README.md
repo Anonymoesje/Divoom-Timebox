@@ -1,9 +1,8 @@
-# Divoom-Timebox
-# Warning: Currently in Alpha-state
+# Divoom-Timebox (Warning: Currently in Alpha-state)
 
-This is a [Home Assistant](https://hass.io) custom component for the Timebox-Evo
+This is a [Home Assistant](https://hass.io) custom component for the Timebox-Evo. 
 Currently, the only way to interact with the Timebox-Evo is a Javascript library ([node-divoom-timebox-evo](https://github.com/RomRider/node-divoom-timebox-evo)).
-I am planning on implementing it in this Repository, in the future.
+I am working on implementing it in this Repository. This Repository is still in an alpha-state, as i add new features.
 
 # Installation
 
@@ -14,21 +13,22 @@ There are multiple methods to find your bluetooth mac address.
 You can:
 1. Use a phone app
 >[IOS](https://apps.apple.com/us/app/bluetooth-ble-device-finder/id1465245157)
+
 >[Android](https://play.google.com/store/apps/details?id=com.codeweavers.bluetoothmacaddressfinder)
 
 2. Use Home Assistant
+> run `bluetoothctl`
 
-- run `bluetoothctl`
-- run `scan on`
+> run `scan on`
 
 A list of blutooth devices will appear. Write down the mac address of your Timebox-Evo
 
 You can try to connect to it to ensure it will work
 - run `connect MAC_ADDRESS`
-> If you have the error `Failed to connect: org.bluez.Error.Failed` run `trust MAC_ADDRESS` and try again
+  > If you have the error `Failed to connect: org.bluez.Error.Failed` run `trust MAC_ADDRESS` and try again
 - if it worked, disconnect the device, run `disconnect`
 
-If you have any problem [the following guide](https://www.pcsuggest.com/linux-bluetooth-setup-hcitool-bluez/) may help you troubleshoot your issue.
+If you have any problem, [the following guide](https://www.pcsuggest.com/linux-bluetooth-setup-hcitool-bluez/) may help you troubleshoot your issue.
 
 ## Server
 
@@ -218,5 +218,7 @@ TODO
 
 Thanks to 
 > [node-divoom-timebox-evo](https://github.com/RomRider/node-divoom-timebox-evo).
+
 > [homeassistant-timebox](https://bitbucket.org/pjhardy/homeassistant-timebox/src/master/).
+
 > [timebox-home-assistant](https://github.com/noeRls/timebox-home-assistant)
