@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import homeassistant.helpers.config_validation as cv
-from homeassistant.components.light import LightEntity, SUPPORT_BRIGHTNESS
+from homeassistant.components.light import LightEntity, SUPPORT_BRIGHTNESS, ATTR_BRIGHTNESS
 from homeassistant.const import CONF_NAME, CONF_URL, CONF_MAC
 import voluptuous as vol
 from homeassistant.components.notify import ATTR_TARGET, ATTR_DATA, PLATFORM_SCHEMA, BaseNotificationService
@@ -101,6 +101,10 @@ class TimeboxLight(LightEntity):
         brightness control.
         """
         self._light.turn_on()
+        brightness = kwargs.get(ATTR_BRIGHTNESS)
+        if brightness != self._light.brightness:
+            self._light.set_brightness(brightness)
+
         self.update()
 
     def turn_off(self, **kwargs: Any) -> None:
