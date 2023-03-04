@@ -1,0 +1,9 @@
+{
+    "domain": "timebox",
+    "name": "timebox",
+    "dependencies": [],
+    "codeowners": ["@Anonymoesje"],
+    "requirements": [],
+    "version": "0.1",
+    "iot_class" :  "assumed_state"
+}
