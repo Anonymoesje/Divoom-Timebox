@@ -1,9 +1,9 @@
 {
     "domain": "timebox",
-    "name": "timebox",
-    "dependencies": [],
+    "name": "Divoom Timebox",
+    "documentation": "https://github.com/Anonymoesje/Divoom-Timebox",
+    "issue_tracker": "https://github.com/Anonymoesje/Divoom-Timebox",
     "codeowners": ["@Anonymoesje"],
-    "requirements": [],
     "version": "0.1",
     "iot_class" :  "assumed_state"
 }

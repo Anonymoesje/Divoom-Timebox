@@ -1,4 +1,5 @@
 # Divoom-Timebox
+# Warning: Currently in Alpha-state
 
 This is a [Home Assistant](https://hass.io) custom component for the Timebox-Evo
 Currently, the only way to interact with the Timebox-Evo is a Javascript library ([node-divoom-timebox-evo](https://github.com/RomRider/node-divoom-timebox-evo)).
