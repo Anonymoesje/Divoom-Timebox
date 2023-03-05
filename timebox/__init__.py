@@ -55,17 +55,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         """Run final tasks after startup."""
         _LOGGER.debug("Completing remaining startup tasks.")
         # notify = hass.data[DOMAIN].get("notify_service")
-        # hass.services.async_register(DOMAIN, DOMAIN, TimeboxService(timebox, timebox.image_dir))
+        hass.services.async_register(DOMAIN, DOMAIN, TimeboxService(timebox, timebox.image_dir), None)
 
-        hass.async_create_task(
-            discovery.async_load_platform(
-                hass,
-                Platform.NOTIFY,
-                DOMAIN,
-                dict(entry.data),
-                hass.data[DOMAIN]
-            )
-        )
+        # hass.async_create_task(
+        #     discovery.async_load_platform(
+        #         hass,
+        #         Platform.NOTIFY,
+        #         DOMAIN,
+        #         dict(entry.data),
+        #         hass.data[DOMAIN]
+        #     )
+        # )
 
         return True
 

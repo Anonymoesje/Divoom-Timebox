@@ -82,22 +82,7 @@ Then `npm run-script start` to start the server
 
 #### Enable the component
 
-In your `configuration.yaml` add two entries, currently both light and notify are seperate. 
-Big changes are comming, it wil change soon.
-```yml
-notify:
-  - name: timebox
-    platform: timebox
-    mac: 11:75:22:2A:2B:2C
-    image_dir: timebox-images
-    url: http://localhost:5555
-light:
-  - name: timebox
-    platform: timebox
-    mac: 11:75:22:2A:2B:2C
-    url: http://localhost:5555
-```
-
+Setup through the integrations UI, following values are needed to enable the light and notify platforms:
 - `name`: name of light entity
 - `mac`: mac address of your timebox-evo
 - `url`: url to the server
