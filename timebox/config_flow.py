@@ -1,0 +1,115 @@
+"""Config flow for Timebox integration."""
+from __future__ import annotations
+
+import logging
+import requests
+import voluptuous as vol
+from typing import Any
+
+from homeassistant import config_entries, exceptions
+from homeassistant.core import HomeAssistant
+from homeassistant.const import CONF_URL, CONF_PORT, CONF_MAC, CONF_NAME
+
+from .const import DOMAIN, TIMEOUT  # pylint:disable=unused-import
+from .timebox import Timebox
+
+_LOGGER = logging.getLogger(__name__)
+DEFAULT_PORT = 5555
+DEFAULT_URL = "http://localhost"
+DEFAULT_MAC = "11:75:1A:2B:3C:4D"
+
+# This is the schema used to display the UI to the user
+DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_URL, default=DEFAULT_URL): str,
+        vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
+        vol.Required(CONF_MAC, default=DEFAULT_MAC): str,
+        vol.Optional(CONF_NAME, default="TimeboxEvo"): str,
+        vol.Optional('img_dir', default="pixelart") : str
+    }
+)
+
+def server_is_reachable(url, port):
+    r = requests.get(f'{url}:{port}/hello', timeout=TIMEOUT)
+    if r.status_code != 200:
+        return False
+    return True
+
+
+async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
+    """Validate the user input allows us to connect.
+    Data has the keys from DATA_SCHEMA with values provided by the user.
+    """
+    # Validate the data can be used to set up a connection.
+    # Check url valid
+    if not server_is_reachable(data["url"], data["port"]):
+        raise CannotConnect # Return CannotConnect because integration cannot be setup without server
+
+    # Check host not too short: TODO: enhance host validation
+    if len(data["host"]) < 3:
+        raise InvalidHost
+
+    # Check image dir valid
+    if (image_dir):
+        image_dir = hass.config.path(data["img_dir"]),
+    else:
+        image_dir = None
+        _LOGGER.warn(f'Invalid image_dir "{data["img-dir"]}"')
+
+    # If your PyPI package is not built with async, pass your methods
+    # to the executor:
+    # await hass.async_add_executor_job(
+    #     your_validate_func, data["username"], data["password"]
+    # )
+
+    # Return info that you want to store in the config entry.
+    # "Title" is what is displayed to the user for this hub device
+    # It is stored internally in HA as part of the device config.
+    # See `async_step_user` below for how this is used
+    return {
+        "title": f"{data['name']}",
+        "url": f"{data['url']}",
+        "port": f"{data['port']}",
+        "mac": data['mac'],
+        "name": f"{data['name']}",
+        "img_dir": f"{data['img_dir']}"
+    }
+
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Timebox."""
+
+    VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_ASSUMED
+
+    async def async_step_user(self, user_input=None):
+        """Handle the initial step."""
+        errors = {}
+        if user_input is not None:
+            try:
+                info = await validate_input(self.hass, user_input)
+
+                return self.async_create_entry(title=info["title"], data=user_input)
+            except CannotConnect:
+                errors["base"] = "cannot_connect"
+            except InvalidHost:
+                # The error string is set here, and should be translated.
+                # This example does not currently cover translations, see the
+                # comments on `DATA_SCHEMA` for further details.
+                # Set the error on the `host` field, not the entire form.
+                errors["base"] = "cannot_connect"
+            except Exception:  # pylint: disable=broad-except
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
+
+        # If there is no user input or there were errors, show the form again, including any errors that were found with the input.
+        return self.async_show_form(
+            step_id="user", data_schema=DATA_SCHEMA, errors=errors
+        )
+
+
+class CannotConnect(exceptions.HomeAssistantError):
+    """Error to indicate we cannot connect."""
+
+
+class InvalidHost(exceptions.HomeAssistantError):
+    """Error to indicate there is an invalid hostname."""

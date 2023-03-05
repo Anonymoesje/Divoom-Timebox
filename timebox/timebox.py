@@ -2,16 +2,18 @@ from datetime import datetime, timedelta, timezone
 import re
 import requests
 import logging
-from .const import DOMAIN
+from .const import DOMAIN, TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
-TIMEOUT = 15
 
 
 class Timebox():
-    def __init__(self, url, mac):
+    def __init__(self, url, port, mac, image_dir, name):
         self.url = url
+        self.port = port
         self.mac = mac
+        self.image_dir = image_dir
+        self.name = name
         self._is_on = None
         self._brightness = None
         self._isConnected = None
@@ -25,7 +27,7 @@ class Timebox():
         return self._brightness
 
     def send_request(self, error_message, url, data, files={}):
-        r = requests.post(f'{self.url}{url}', data=data, files=files, timeout=TIMEOUT)
+        r = requests.post(f'{self.url}:{self.port}{url}', data=data, files=files, timeout=TIMEOUT)
         if (r.status_code != 200):
             _LOGGER.error(r.content)
             _LOGGER.error(error_message)

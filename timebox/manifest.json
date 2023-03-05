@@ -1,9 +1,12 @@
 {
     "domain": "timebox",
     "name": "Divoom Timebox",
-    "documentation": "https://github.com/Anonymoesje/Divoom-Timebox",
-    "issue_tracker": "https://github.com/Anonymoesje/Divoom-Timebox",
-    "codeowners": ["@Anonymoesje"],
     "version": "0.1",
-    "iot_class" :  "assumed_state"
+    "documentation": "https://github.com/Anonymoesje/Hass-Divoom-Timebox",
+    "dependencies": [],
+    "requirements": [],
+    "issue_tracker": "https://github.com/Anonymoesje/Hass-Divoom-Timebox/issues",
+    "codeowners": ["@Anonymoesje"],
+    "iot_class" :  "assumed_state",
+    "config_flow": true
 }

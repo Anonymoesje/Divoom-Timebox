@@ -3,22 +3,22 @@ from __future__ import annotations
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.light import LightEntity, SUPPORT_BRIGHTNESS, ATTR_BRIGHTNESS
-from homeassistant.const import CONF_NAME, CONF_URL, CONF_MAC
+from homeassistant.const import CONF_NAME
 import voluptuous as vol
 from homeassistant.components.notify import ATTR_TARGET, ATTR_DATA, PLATFORM_SCHEMA, BaseNotificationService
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
+from homeassistant.config_entries import ConfigEntry
 
 import re
 import requests
 import logging
-from .const import DOMAIN
-from .timebox import Timebox
+from .const import DOMAIN, TIMEOUT
 
-_LOGGER = logging.getLogger("timebox")
-TIMEOUT = 15
+#_LOGGER = logging.getLogger("timebox")
+from .timebox import _LOGGER
 
 PARAM_MODE = "mode"
 
@@ -38,28 +38,15 @@ PARAM_OFFSET_DATETIME = "offset-datetime"
 PARAM_DISPLAY_TYPE = "display-type"
 
 
-def is_valid_server_url(url):
-    r = requests.get(f'{url}/hello', timeout=TIMEOUT)
-    if r.status_code != 200:
-        return False
-    return True
-
-
-def setup_platform(
-        hass, config, add_entities: AddEntitiesCallback, discovery_info: DiscoveryInfoType | None = None
+async def async_setup_entry(
+        hass, config_entry: ConfigEntry, add_entities: AddEntitiesCallback, discovery_info: DiscoveryInfoType | None = None
 ) -> None:
-    """Set up the Awesome Light platform."""
+    """Set up the Light platform."""
     # Assign configuration variables.
     # The configuration check takes care they are present.
+    timebox = hass.data[DOMAIN][config_entry.entry_id]
 
-    if not is_valid_server_url(config[CONF_URL]):
-        _LOGGER.error(f'Invalid server url "{config[CONF_URL]}"')
-        return None
-    timebox = Timebox(config[CONF_URL], config[CONF_MAC])
-    if not timebox.isConnected():
-        return None
-
-    light_devices = [TimeboxLight(timebox, config[CONF_NAME])]
+    light_devices = [TimeboxLight(timebox, config_entry[CONF_NAME])]
     # Add devices
     add_entities(light_devices)
 

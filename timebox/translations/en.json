@@ -1,0 +1,30 @@
+{
+    "title": "Divoom Timebox Integration",
+    "config": {
+      "step": {
+        "user": {
+          "title": "Connect to the device",
+          "description": "Add your Divoom Evo",
+          "data": {
+            "name": "Name",
+            "url": "Hostname",
+            "URL": "Hostname",
+            "CONF_URL": "Hostname",
+            "port": "Port",
+            "mac": "Mac Address",
+            "img_dir": "Image Directory"
+          }
+        }
+      },
+      "error": {
+        "cannot_connect": "Failed to connect, please try again",
+        "invalid_auth": "Invalid authentication",
+        "unknown": "Unexpected error",
+        "invalid_host": "Invalid host"
+      },
+      "abort": {
+        "already_configured": "Device is already configured",
+        "unsupported_device_type": "Unsupported device type!"
+      }
+    }
+  }

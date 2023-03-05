@@ -1,5 +1,4 @@
 import homeassistant.helpers.config_validation as cv
-from homeassistant.const import CONF_NAME, CONF_URL, CONF_MAC
 import voluptuous as vol
 from homeassistant.components.notify import ATTR_TARGET, ATTR_DATA,PLATFORM_SCHEMA, BaseNotificationService
 import io
@@ -8,17 +7,10 @@ from os.path import join
 import re
 import requests
 import logging
-from .const import DOMAIN
-from .timebox import Timebox, _LOGGER
+from .const import DOMAIN, TIMEOUT
+from .timebox import _LOGGER
 
 CONF_IMAGE_DIR = "image_dir"
-TIMEOUT = 15
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_URL): cv.string,
-    vol.Required(CONF_MAC): cv.string,
-    vol.Optional(CONF_IMAGE_DIR): cv.string
-})
 
 PARAM_MODE = "mode"
 
@@ -37,23 +29,15 @@ PARAM_SET_DATETIME = "set-datetime"
 PARAM_OFFSET_DATETIME = "offset-datetime"
 PARAM_DISPLAY_TYPE = "display-type"
 
-def is_valid_server_url(url):
-    r = requests.get(f'{url}/hello', timeout=TIMEOUT)
-    if r.status_code != 200:
-        return False
-    return True
+async def async_setup_entry(hass, config_entry, async_add_entities):
+        """Set up the notify platform for Timebox"""
+        notifyservice = []
 
-def get_service(hass, config, discovery_info=None):
-    image_dir = None
-    if (config[CONF_IMAGE_DIR]):
-        image_dir = hass.config.path(config[CONF_IMAGE_DIR])
-    if not is_valid_server_url(config[CONF_URL]):
-        _LOGGER.error(f'Invalid server url "{config[CONF_URL]}"')
-        return None
-    timebox = Timebox(config[CONF_URL], config[CONF_MAC])
-    if not timebox.isConnected():
-        return None
-    return TimeboxService(timebox, image_dir)
+        timebox = hass.data[DOMAIN][config_entry.entry_id]
+        notifyservice.append(TimeboxService(timebox, config_entry["img_dir"]))
+
+        async_add_entities(notifyservice)
+
 
 class TimeboxService(BaseNotificationService):
     def __init__(self, timebox, image_dir = None):
