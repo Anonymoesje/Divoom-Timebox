@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import re
-import requests
+import aiohttp
 import logging
 from .const import DOMAIN, TIMEOUT
 
@@ -26,13 +26,14 @@ class Timebox():
     def brightness(self):
         return self._brightness
 
-    def send_request(self, error_message, url, data, files={}):
-        r = requests.post(f'{self.url}:{self.port}{url}', data=data, files=files, timeout=TIMEOUT)
-        if (r.status_code != 200):
-            _LOGGER.error(r.content)
-            _LOGGER.error(error_message)
-            return False
-        return True
+    async def send_request(self, error_message, url, data, files={}):
+        async with aiohttp.ClientSession() as client:
+            requestUrl = f'{self.url}:{self.port}{url}/hello'
+            async with client.post(requestUrl, data=data, files=files, timeout=TIMEOUT) as response:
+                if (response.status != 200):
+                    _LOGGER.error(response.content)
+                    _LOGGER.error(error_message)
+                return response.status == 200
 
     def send_brightness(self, brightness):
         self.send_request('Failed to set brightness', '/brightness', data={"brightness": brightness, "mac": self.mac})

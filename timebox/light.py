@@ -13,9 +13,9 @@ from homeassistant.helpers.typing import DiscoveryInfoType
 from homeassistant.config_entries import ConfigEntry
 
 import re
-import requests
 import logging
 from .const import DOMAIN, TIMEOUT
+
 
 #_LOGGER = logging.getLogger("timebox")
 from .timebox import _LOGGER
@@ -39,25 +39,24 @@ PARAM_DISPLAY_TYPE = "display-type"
 
 
 async def async_setup_entry(
-        hass, config_entry: ConfigEntry, add_entities: AddEntitiesCallback, discovery_info: DiscoveryInfoType | None = None
+        hass, config_entry: ConfigEntry, async_add_entities, discovery_info: DiscoveryInfoType | None = None
 ) -> None:
     """Set up the Light platform."""
     # Assign configuration variables.
     # The configuration check takes care they are present.
     timebox = hass.data[DOMAIN][config_entry.entry_id]
 
-    light_devices = [TimeboxLight(timebox, config_entry[CONF_NAME])]
+    light_devices = [TimeboxLight(timebox)]
     # Add devices
-    add_entities(light_devices)
-
+    async_add_entities(light_devices)
 
 class TimeboxLight(LightEntity):
     """Representation of an Timebox Light."""
 
-    def __init__(self, timebox, name) -> None:
+    def __init__(self, timebox) -> None:
         """Initialize an TimeboxLight."""
         self._light = timebox
-        self._name = name
+        self._name = timebox.name
         self._state = None
         self._brightness = None
 

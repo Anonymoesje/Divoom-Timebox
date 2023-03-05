@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-import requests
+import aiohttp
 import voluptuous as vol
 from typing import Any
 
@@ -16,7 +16,7 @@ from .timebox import Timebox
 _LOGGER = logging.getLogger(__name__)
 DEFAULT_PORT = 5555
 DEFAULT_URL = "http://localhost"
-DEFAULT_MAC = "11:75:1A:2B:3C:4D"
+DEFAULT_MAC = "11:75:"
 
 # This is the schema used to display the UI to the user
 DATA_SCHEMA = vol.Schema(
@@ -29,12 +29,11 @@ DATA_SCHEMA = vol.Schema(
     }
 )
 
-def server_is_reachable(url, port):
-    r = requests.get(f'{url}:{port}/hello', timeout=TIMEOUT)
-    if r.status_code != 200:
-        return False
-    return True
-
+async def server_is_reachable(url, port):
+    async with aiohttp.ClientSession() as client:
+        url = f'{url}:{port}/hello'
+        async with client.get(url) as response:
+            return response.status == 200
 
 async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
     """Validate the user input allows us to connect.
@@ -42,18 +41,18 @@ async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
     """
     # Validate the data can be used to set up a connection.
     # Check url valid
-    if not server_is_reachable(data["url"], data["port"]):
+    if not await server_is_reachable(data["url"], data["port"]):
         raise CannotConnect # Return CannotConnect because integration cannot be setup without server
 
     # Check host not too short: TODO: enhance host validation
-    if len(data["host"]) < 3:
+    if len(data["url"]) < 3:
         raise InvalidHost
 
     # Check image dir valid
-    if (image_dir):
+    if (data["img_dir"]):
         image_dir = hass.config.path(data["img_dir"]),
     else:
-        image_dir = None
+        image_dir = ""
         _LOGGER.warn(f'Invalid image_dir "{data["img-dir"]}"')
 
     # If your PyPI package is not built with async, pass your methods
@@ -72,7 +71,7 @@ async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
         "port": f"{data['port']}",
         "mac": data['mac'],
         "name": f"{data['name']}",
-        "img_dir": f"{data['img_dir']}"
+        "img_dir": image_dir
     }
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
