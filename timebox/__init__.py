@@ -8,10 +8,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, Platform, CONF_URL, CONF_PORT, CONF_MAC, CONF_NAME, CONF_PATH
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.entity_component import EntityComponent
 
 from .const import DOMAIN, SERVICE_ACTION, TIMEOUT
 from .timebox import Timebox
-from .notify import TimeboxService, async_unload_entry as notify_async_unload_entry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,6 +27,8 @@ PLATFORMS = [
     "light"
 ]
 
+DEVICES = []
+
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
 async def async_setup(hass: HomeAssistant, config: dict):
@@ -37,6 +39,8 @@ async def async_setup(hass: HomeAssistant, config: dict):
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up timebox from the config entry."""
     
+    component = EntityComponent(_LOGGER, DOMAIN, hass)
+
     entry_data = entry.data
     timebox_url = entry_data[CONF_URL]
     timebox_port = entry_data[CONF_PORT]
@@ -54,6 +58,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         image_dir, 
         timebox_name
     )
+
+    DEVICES.append(timebox)
+
+    await component.async_add_entities(DEVICES, False)
     
     if not timebox.isConnected():
         _LOGGER.error("No connection to Timebox, check your bluetooth connection!")
@@ -80,7 +88,7 @@ async def register_services(hass) -> None:
     return True
 
 async def _send_service(service):
-    await TimeboxService.send_message(service.data.get("message"), service.data.get("data")), None
+    await Timebox.send_message(service.data.get("message"), service.data.get("data")), None
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""

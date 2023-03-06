@@ -1,13 +1,15 @@
 from datetime import datetime, timedelta, timezone
+import io
 import re
 import aiohttp
 import logging
-from .const import DOMAIN, TIMEOUT
+from .const import ATTR_DATA, DOMAIN, TIMEOUT, CONF_IMGDIR, DOMAIN, MODE_BRIGHTNESS, MODE_IMAGE, MODE_TEXT, MODE_TIME, PARAM_BRIGHTNESS, PARAM_DISPLAY_TYPE, PARAM_FILE_NAME, PARAM_LINK, PARAM_MESSAGE, PARAM_MODE, PARAM_OFFSET_DATETIME, PARAM_SET_DATETIME, PARAM_TEXT
+from homeassistant.helpers.entity import Entity
 
 _LOGGER = logging.getLogger(__name__)
 
-
-class Timebox():
+ 
+class Timebox(Entity):
     def __init__(self, hass, session, url, port, mac, image_dir, name):
         self.hass = hass
         self.session = session
@@ -89,3 +91,69 @@ class Timebox():
 
         return self.send_request('Failed to switch to set datetime', '/datetime',
                                  data={"mac": self.mac, "datetime": dt})
+
+
+# Service part
+
+
+    async def send_image_link(self, link):
+        async with aiohttp.ClientSession() as client:
+            async with client.get(link) as response:
+                if (response.status != 200):
+                    return False
+                return await self.timebox.send_image(io.BytesIO(response.content))
+
+    async def send_image_file(self, filename):
+        try:
+            f = open(join(self.image_dir, filename), 'rb')
+            return await self.timebox.send_image(f)
+        except Exception as e:
+            _LOGGER.error(e)
+            _LOGGER.error(f"Failed to read {filename}")
+            return False
+
+    async def send_message(self, message="", **kwargs):
+        _LOGGER.warn(f"Inside data: {kwargs.get(ATTR_DATA)} message data: {kwargs.get(PARAM_MESSAGE)} outside data: {kwargs}")
+        if kwargs.get(ATTR_DATA) is not None:
+            data = kwargs.get(ATTR_DATA)
+            mode = data.get(PARAM_MODE, MODE_TEXT)
+        elif message is not None:
+            data = {}
+            mode = MODE_TEXT
+        else:
+            _LOGGER.error("Service call needs a message type")
+            return False
+
+        if (mode == MODE_IMAGE):
+            if (data.get(PARAM_LINK)):
+                return await self.send_image_link(data.get(PARAM_LINK))
+            elif (data.get(PARAM_FILE_NAME)):
+                return await self.send_image_file(data.get(PARAM_FILE_NAME))
+            else:
+                _LOGGER.error(f'Invalid payload, {PARAM_LINK} or {PARAM_FILE_NAME} must be provided with {MODE_IMAGE} mode')
+                return False
+        elif (mode == MODE_TEXT):
+            text = data.get(PARAM_TEXT, message)
+            if (text):
+                return await self.timebox.send_text(text)
+            else:
+                _LOGGER.error(f"Invalid payload, {PARAM_TEXT} or message must be provided with {MODE_TEXT}")
+                return False
+        elif (mode == MODE_BRIGHTNESS):
+            try:
+                brightness = int(data.get(PARAM_BRIGHTNESS))
+                return await self.timebox.set_brightness(brightness)
+            except Exception:
+                _LOGGER.error(f"Invalid payload, {PARAM_BRIGHTNESS}={data.get(PARAM_BRIGHTNESS)}")
+                return False
+        elif (mode == MODE_TIME):
+            set_datetime = data.get(PARAM_SET_DATETIME)
+            if set_datetime:
+                offset = data.get(PARAM_OFFSET_DATETIME)
+                await self.timebox.set_datetime(offset)
+
+            display_type = data.get(PARAM_DISPLAY_TYPE, "fullscreen")
+            return await self.timebox.set_time_channel(display_type)
+        else:
+            _LOGGER.error(f"Invalid mode {mode}")
+            return False
