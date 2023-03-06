@@ -10,7 +10,7 @@
             "url": "Host naam",
             "port": "Poort",
             "mac": "Mac-Adres",
-            "img_dir": "Afbeeldingen map"
+            "path": "Afbeeldingen map"
           }
         }
       },
@@ -18,7 +18,8 @@
         "cannot_connect": "Fout bij verbinden, probeer opnieuw",
         "invalid_auth": "Authenticatie mislukt",
         "unknown": "Onverwachte error",
-        "invalid_host": "Ongeldige host"
+        "invalid_host": "Ongeldige host",
+        "path_fail": "Ongeldige maplocatie"
       },
       "abort": {
         "already_configured": "Apparaat is al geconfigureerd!",

@@ -8,12 +8,15 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Timebox():
-    def __init__(self, url, port, mac, image_dir, name):
+    def __init__(self, hass, session, url, port, mac, image_dir, name):
+        self.hass = hass
+        self.session = session
         self.url = url
         self.port = port
         self.mac = mac
         self.image_dir = image_dir
         self.name = name
+
         self._is_on = None
         self._brightness = None
         self._isConnected = None
@@ -27,13 +30,12 @@ class Timebox():
         return self._brightness
 
     async def send_request(self, error_message, url, data, files={}):
-        async with aiohttp.ClientSession() as client:
-            requestUrl = f'{self.url}:{self.port}{url}/hello'
-            async with client.post(requestUrl, data=data, files=files, timeout=TIMEOUT) as response:
-                if (response.status != 200):
-                    _LOGGER.error(response.content)
-                    _LOGGER.error(error_message)
-                return response.status == 200
+        requestUrl = f'{self.url}:{self.port}{url}/hello'
+        async with self.session.post(requestUrl, data=data, files=files, timeout=TIMEOUT) as response:
+            if (response.status != 200):
+                _LOGGER.error(response.content)
+                _LOGGER.error(error_message)
+            return response.status == 200
 
     def send_brightness(self, brightness):
         self.send_request('Failed to set brightness', '/brightness', data={"brightness": brightness, "mac": self.mac})

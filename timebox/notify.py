@@ -10,10 +10,8 @@ from homeassistant.core import HomeAssistant
 
 import re
 import logging
-from .const import DOMAIN, TIMEOUT
+from .const import CONF_IMGDIR, DOMAIN, TIMEOUT
 from .timebox import _LOGGER, Timebox
-
-CONF_IMAGE_DIR = "image_dir"
 
 PARAM_MODE = "mode"
 
@@ -35,12 +33,15 @@ PARAM_DISPLAY_TYPE = "display-type"
 async def async_get_service(hass: HomeAssistant, config: ConfigEntry, discovery_info=None):
         """Set up the notify platform for Timebox"""
         timebox = hass.data[DOMAIN][config.entry_id]
-        return TimeboxService(timebox, config["img_dir"])
+        service = TimeboxService(timebox)
+        service.image_dir = config[CONF_IMGDIR]
+        return service
 
 class TimeboxService(BaseNotificationService):
-    def __init__(self, timebox, image_dir = None):
+    def __init__(self, timebox, body, image_dir = None):
         self.timebox = timebox
         self.image_dir = image_dir
+        self.body = body
 
     async def send_image_link(self, link):
         async with aiohttp.ClientSession() as client:

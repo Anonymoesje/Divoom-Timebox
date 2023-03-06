@@ -8,11 +8,9 @@
           "data": {
             "name": "Name",
             "url": "Hostname",
-            "URL": "Hostname",
-            "CONF_URL": "Hostname",
             "port": "Port",
             "mac": "Mac Address",
-            "img_dir": "Image Directory"
+            "path": "Image Directory"
           }
         }
       },
@@ -20,7 +18,8 @@
         "cannot_connect": "Failed to connect, please try again",
         "invalid_auth": "Invalid authentication",
         "unknown": "Unexpected error",
-        "invalid_host": "Invalid host"
+        "invalid_host": "Invalid host",
+        "path_fail": "Invalid path"
       },
       "abort": {
         "already_configured": "Device is already configured",

@@ -8,7 +8,7 @@ from typing import Any
 
 from homeassistant import config_entries, exceptions
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_URL, CONF_PORT, CONF_MAC, CONF_NAME
+from homeassistant.const import CONF_URL, CONF_PORT, CONF_MAC, CONF_NAME, CONF_PATH
 
 from .const import DOMAIN, TIMEOUT  # pylint:disable=unused-import
 from .timebox import Timebox
@@ -25,7 +25,7 @@ DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
         vol.Required(CONF_MAC, default=DEFAULT_MAC): str,
         vol.Optional(CONF_NAME, default="TimeboxEvo"): str,
-        vol.Optional('img_dir', default="pixelart") : str
+        vol.Optional(CONF_PATH, default="pixelart") : str
     }
 )
 
@@ -48,12 +48,12 @@ async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
     if len(data["url"]) < 3:
         raise InvalidHost
 
-    # Check image dir valid
-    if (data["img_dir"]):
-        image_dir = hass.config.path(data["img_dir"]),
-    else:
-        image_dir = ""
-        _LOGGER.warn(f'Invalid image_dir "{data["img-dir"]}"')
+    # # Check image dir valid
+    # if (data[CONF_IMGDIR]):
+    #     image_dir = data[CONF_IMGDIR]),
+    # else:
+    #     image_dir = ""
+    #     _LOGGER.warn(f'Invalid image_dir "{data[CONF_IMGDIR]}"')
 
     # If your PyPI package is not built with async, pass your methods
     # to the executor:
@@ -66,12 +66,12 @@ async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
     # It is stored internally in HA as part of the device config.
     # See `async_step_user` below for how this is used
     return {
-        "title": f"{data['name']}",
-        "url": f"{data['url']}",
-        "port": f"{data['port']}",
-        "mac": data['mac'],
-        "name": f"{data['name']}",
-        "img_dir": image_dir
+        "title": data["name"],
+        "url": data["url"],
+        "port": data["port"],
+        "mac": data["mac"],
+        "name": data["name"],
+        "path": data["path"]
     }
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -86,7 +86,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 info = await validate_input(self.hass, user_input)
-
                 return self.async_create_entry(title=info["title"], data=user_input)
             except CannotConnect:
                 errors["base"] = "cannot_connect"
@@ -99,7 +98,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
-
+            try:
+                info = await validate_input(self.hass, user_input)
+                return self.async_create_entry(img_path=self.hass.config.path(info["path"]), data=user_input)
+            except InvalidDirectory:
+                _LOGGER.exception("Failed to convert map name to path")
+                errors["base"] = "path_fail"
         # If there is no user input or there were errors, show the form again, including any errors that were found with the input.
         return self.async_show_form(
             step_id="user", data_schema=DATA_SCHEMA, errors=errors
@@ -112,3 +116,6 @@ class CannotConnect(exceptions.HomeAssistantError):
 
 class InvalidHost(exceptions.HomeAssistantError):
     """Error to indicate there is an invalid hostname."""
+
+class InvalidDirectory(exceptions.HomeAssistantError):
+    """Error to indicate a wrong file path is entered."""
