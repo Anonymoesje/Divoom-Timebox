@@ -29,7 +29,7 @@ PLATFORMS = [
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
-async def async_setup(hass: HomeAssistantType, config: dict):
+async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the timebox component."""
     hass.data.setdefault(DOMAIN, {})
     return True
@@ -80,8 +80,7 @@ async def register_services(hass) -> None:
     return True
 
 async def _send_service(service):
-    body = service.data.get("body")
-    await TimeboxService.send_message(body), None
+    await TimeboxService.send_message(service.data.get("message"), service.data.get("data")), None
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""

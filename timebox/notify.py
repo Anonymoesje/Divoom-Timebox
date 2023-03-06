@@ -10,38 +10,19 @@ from homeassistant.core import HomeAssistant
 
 import re
 import logging
-from .const import CONF_IMGDIR, DOMAIN, TIMEOUT
+from .const import CONF_IMGDIR, DOMAIN, MODE_BRIGHTNESS, MODE_IMAGE, MODE_TEXT, MODE_TIME, PARAM_BRIGHTNESS, PARAM_DISPLAY_TYPE, PARAM_FILE_NAME, PARAM_LINK, PARAM_MESSAGE, PARAM_MODE, PARAM_OFFSET_DATETIME, PARAM_SET_DATETIME, PARAM_TEXT, TIMEOUT
 from .timebox import _LOGGER, Timebox
-
-PARAM_MODE = "mode"
-
-MODE_IMAGE = "image"
-PARAM_FILE_NAME = "file-name"
-PARAM_LINK = "link"
-
-MODE_TEXT = "text"
-PARAM_TEXT = "text"
-
-MODE_BRIGHTNESS = "brightness"
-PARAM_BRIGHTNESS = "brightness"
-
-MODE_TIME = "time"
-PARAM_SET_DATETIME = "set-datetime"
-PARAM_OFFSET_DATETIME = "offset-datetime"
-PARAM_DISPLAY_TYPE = "display-type"
 
 async def async_get_service(hass: HomeAssistant, config: ConfigEntry, discovery_info=None):
         """Set up the notify platform for Timebox"""
         timebox = hass.data[DOMAIN][config.entry_id]
-        service = TimeboxService(timebox)
-        service.image_dir = config[CONF_IMGDIR]
+        service = TimeboxService(timebox, config[CONF_IMGDIR])
         return service
 
 class TimeboxService(BaseNotificationService):
-    def __init__(self, timebox, body, image_dir = None):
+    def __init__(self, timebox, image_dir = None):
         self.timebox = timebox
         self.image_dir = image_dir
-        self.body = body
 
     async def send_image_link(self, link):
         async with aiohttp.ClientSession() as client:
@@ -60,6 +41,7 @@ class TimeboxService(BaseNotificationService):
             return False
 
     async def send_message(self, message="", **kwargs):
+        _LOGGER.warn(f"Inside data: {kwargs.get(ATTR_DATA)} message data: {kwargs.get(PARAM_MESSAGE)} outside data: {kwargs}")
         if kwargs.get(ATTR_DATA) is not None:
             data = kwargs.get(ATTR_DATA)
             mode = data.get(PARAM_MODE, MODE_TEXT)
