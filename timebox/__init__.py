@@ -39,14 +39,14 @@ async def async_setup(hass: HomeAssistant, config: dict):
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up timebox from the config entry."""
     
-    component = EntityComponent(_LOGGER, DOMAIN, hass)
+    #component = EntityComponent(_LOGGER, DOMAIN, hass)
 
     entry_data = entry.data
     timebox_url = entry_data[CONF_URL]
     timebox_port = entry_data[CONF_PORT]
     timebox_mac = entry_data[CONF_MAC]
-    timebox_name = entry_data[CONF_NAME]
     image_dir = entry_data[CONF_PATH]
+    timebox_name = entry_data[CONF_NAME]
     
     # Setup timebox singleton
     timebox = Timebox(
@@ -61,7 +61,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     DEVICES.append(timebox)
 
-    await component.async_add_entities(DEVICES, False)
+    #await component.async_add_entities(DEVICES, False)
     
     if not timebox.isConnected():
         _LOGGER.error("No connection to Timebox, check your bluetooth connection!")
@@ -87,8 +87,15 @@ async def register_services(hass) -> None:
     hass.services.async_register(DOMAIN, SERVICE_ACTION, _send_service)
     return True
 
-async def _send_service(service):
-    await Timebox.send_message(service.data.get("message"), service.data.get("data")), None
+async def _send_service(service): #hass : HomeAssistant, entry: ConfigEntry, 
+    #timebox = hass.data[DOMAIN][entry.entry_id]
+    await _apply_service(service, Timebox.send_message, service.data.get("data"))
+#DEVICES[0], 
+
+async def _apply_service(service, service_func, *service_func_args):
+    #message = service.data.get("message")
+    for device in DEVICES:
+        await service_func(device, *service_func_args) #message, 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
