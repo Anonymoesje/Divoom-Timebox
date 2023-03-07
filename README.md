@@ -86,7 +86,7 @@ Setup through the integrations UI, following values are needed to enable the lig
 - `name`: name of light entity
 - `mac`: mac address of your timebox-evo
 - `url`: url to the server
-- `image_dir` (optinal): a directory, relative to the configuration dir.
+- `image_dir` (optional): a directory, relative to the configuration dir.
 
 # Functionality
 
@@ -101,17 +101,16 @@ Currently is is possible to:
 
 This custom component acts as both light and notify platform. 
 The Notify platform can send all messages to the server. 
-This custom component will continue changing the messages to entities. 
+I will continue changing the messages to entities. 
 
-Currently it is possible to use all actions through the Notify Service. You will have to always include a message parameter, if it isn't needed you can leave it empty.
-You can also use  specify TimeBox mode and other information in the data parameter of the Service Data payload.
+Currently it is possible to use all actions through the Notify Service.
+You can also specify TimeBox mode and other information in the data parameter of the Service Data payload.
 
 ## Display an image
 
 ### From a link
 ```
 {
-  "message": "",
   "data": {
     "mode": "image",
     "link": "https://example.com/picture.png"
@@ -122,7 +121,6 @@ You can also use  specify TimeBox mode and other information in the data paramet
 ### From a local file
 ```
 {
-  "message": "",
   "data": {
     "mode": "image",
     "file-name": "picture.png"
@@ -135,7 +133,6 @@ The service will use the image in: `image_dir/FILENAME`
 ## Change the brightness
 ```
 {
-  "message": "",
   "data": {
     "mode": "brightness",
     "brightness": 100
@@ -149,7 +146,6 @@ This is the same functionality as the light-entity
 
 ```
 {
-  "message": "",
   "data": {
     "mode": "text",
     "text": "Hello, World!"
@@ -157,18 +153,9 @@ This is the same functionality as the light-entity
 }
 ```
 
-or
-
-```
-{
-  "message": "Hello again, World!"
-}
-```
-
 ## Switch to the time panel
 ```
 {
-  "message": "",
   "data": {
     "mode": "time"
     "display-type": "analog-round"
@@ -186,7 +173,6 @@ Display-type options:
 ## Updating timebox utc offset
 ```
 {
-  "message": "",
   "data": {
     "mode": "time",
     "set-datetime": true

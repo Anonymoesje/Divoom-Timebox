@@ -1,6 +1,7 @@
 """Timebox integration"""
 from __future__ import annotations
 import asyncio
+import json
 import logging
 
 import voluptuous as vol
@@ -89,10 +90,11 @@ async def register_services(hass) -> None:
 
 async def _send_service(service): #hass : HomeAssistant, entry: ConfigEntry, 
     #timebox = hass.data[DOMAIN][entry.entry_id]
-    await _apply_service(service, Timebox.send_message, service.data.get("data"))
+    #json.dumps(*service.data)
+    await _apply_service(Timebox.send_message, service.data.get("data"))
 #DEVICES[0], 
 
-async def _apply_service(service, service_func, *service_func_args):
+async def _apply_service(service_func, *service_func_args):
     #message = service.data.get("message")
     for device in DEVICES:
         await service_func(device, *service_func_args) #message, 

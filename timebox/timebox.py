@@ -33,12 +33,13 @@ class Timebox():
     def brightness(self):
         return self._brightness
 
-    async def send_request(self, error_message, url, data, files={}):
-        requestUrl = f'{self.url}:{self.port}{url}/hello'
-        async with self.session.post(requestUrl, data=data, files=files, timeout=TIMEOUT) as response:
+    async def send_request(self, error_message, url, data):
+        requestUrl = f'{self.url}:{self.port}{url}'
+        async with self.session.post(requestUrl, data=data, timeout=TIMEOUT) as response: #, files=files
             if (response.status != 200):
                 _LOGGER.error(response.content)
                 _LOGGER.error(error_message)
+            _LOGGER.error(f"Status code: {response.status} reply is {response} content is {response.content} response will be {response.status == 200}")
             return response.status == 200
 
     def send_brightness(self, brightness):
@@ -59,7 +60,7 @@ class Timebox():
         self._is_on = False
 
     def send_image(self, image):
-        return self.send_request('Failed to send image', '/image', data={"mac": self.mac}, files={"image": image})
+        return self.send_request('Failed to send image', '/image', data={"mac": self.mac, "image": image}) #, files={"image": }
 
     def send_text(self, text):
         return self.send_request('Failed to send text', '/text', data={"text": text, "mac": self.mac})
@@ -114,20 +115,15 @@ class Timebox():
             _LOGGER.error(f"Failed to read {filename}")
             return False
 
-    async def send_message(self, kwargs): #message="", **kwargs
-        self.set_brightness(15)
-        #data = json.dumps(kwargs)    
-        # if kwargs.get(ATTR_DATA) is not None:
-        #     data = kwargs.get(ATTR_DATA)
+    async def send_message(self, kwargs):
+        _LOGGER.info(f"Sending message to {self.mac}")
+        data = kwargs #.get(ATTR_DATA)
+
         if kwargs is not None:
-            data = kwargs
             mode = data.get(PARAM_MODE, MODE_TEXT)
-            message = ""
-        # elif message is not None:
-        #     data = {}
-        #     mode = MODE_TEXT
+            _LOGGER.info(f"Data = {data} mode = {mode} text = {text}")
         else:
-            _LOGGER.error("Service call needs a message type")
+            _LOGGER.error(f"Service call needs a message type, data: {data} is not enough")
             return False
 
         if (mode == MODE_IMAGE):
@@ -139,7 +135,7 @@ class Timebox():
                 _LOGGER.error(f'Invalid payload, {PARAM_LINK} or {PARAM_FILE_NAME} must be provided with {MODE_IMAGE} mode')
                 return False
         elif (mode == MODE_TEXT):
-            text = data.get(PARAM_TEXT, message)
+            text = data.get(PARAM_TEXT)
             if (text):
                 return await self.send_text(text)
             else:
