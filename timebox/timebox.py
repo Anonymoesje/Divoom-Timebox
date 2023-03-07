@@ -104,7 +104,7 @@ class Timebox():
             async with client.get(link) as response:
                 if (response.status != 200):
                     return False
-                return await self.send_image(io.BytesIO(response.content))
+                return await self.send_image(io.BytesIO(await response.content.read()))
 
     async def send_image_file(self, filename):
         try:
@@ -121,7 +121,7 @@ class Timebox():
 
         if kwargs is not None:
             mode = data.get(PARAM_MODE, MODE_TEXT)
-            _LOGGER.info(f"Data = {data} mode = {mode} text = {text}")
+            _LOGGER.info(f"Data = {data} mode = {mode}")
         else:
             _LOGGER.error(f"Service call needs a message type, data: {data} is not enough")
             return False
