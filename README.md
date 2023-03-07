@@ -104,63 +104,57 @@ The Notify platform can send all messages to the server.
 I will continue changing the messages to entities. 
 
 Currently it is possible to use all actions through the Notify Service.
-You can also specify TimeBox mode and other information in the data parameter of the Service Data payload.
+You can also specify TimeBox mode and other information in the fields parameter of the Service Data payload.
 
 ## Display an image
 
 ### From a link
 ```
-{
-  "data": {
-    "mode": "image",
-    "link": "https://example.com/picture.png"
-  }
-}
+service: timebox.send
+data:
+  fields:
+    mode: image
+    text: "https://example.com/picture.png"
 ```
 
 ### From a local file
 ```
-{
-  "data": {
-    "mode": "image",
-    "file-name": "picture.png"
-  }
-}
+service: timebox.send
+data:
+  fields:
+    mode: "image",
+    file-name: "picture.png"
 ```
 In order to use a local file you must specify an `image_dir` in the config
 The service will use the image in: `image_dir/FILENAME`
 
 ## Change the brightness
 ```
-{
-  "data": {
-    "mode": "brightness",
-    "brightness": 100
-  }
-}
+service: timebox.send
+data:
+  fields:
+    mode: "brightness",
+    brightness: 100
 ```
 It is possible to change the brightness on a scale of 0 to 100
 This is the same functionality as the light-entity
 
 ## Display text
-
 ```
-{
-  "data": {
-    "mode": "text",
-    "text": "Hello, World!"
-  }
-}
+service: timebox.send
+data:
+  fields:
+    mode: "text",
+    text: "Hello, World!"
 ```
 
 ## Switch to the time panel
 ```
-{
-  "data": {
-    "mode": "time"
-    "display-type": "analog-round"
-  }
-}
+service: timebox.send
+data:
+  fields:
+    mode: "time"
+    display-type": "analog-round"
 ```
 Display-type options: 
 >`fullscreen` (default & empty)
@@ -172,13 +166,12 @@ Display-type options:
 
 ## Updating timebox utc offset
 ```
-{
-  "data": {
-    "mode": "time",
-    "set-datetime": true
-    "datetime-offset": "-03:00"
-  }
-}
+service: timebox.send
+data:
+  fields:
+    mode: "time",
+    set-datetime: true
+    datetime-offset: "-03:00"
 ```
 If `datetime-offset` is not specified, the local time home-assistant is used.
 

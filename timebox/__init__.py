@@ -1,6 +1,7 @@
 """Timebox integration"""
 from __future__ import annotations
 import asyncio
+from dataclasses import asdict
 import json
 import logging
 
@@ -88,16 +89,14 @@ async def register_services(hass) -> None:
     hass.services.async_register(DOMAIN, SERVICE_ACTION, _send_service)
     return True
 
-async def _send_service(service): #hass : HomeAssistant, entry: ConfigEntry, 
-    #timebox = hass.data[DOMAIN][entry.entry_id]
+async def _send_service(service): 
     #json.dumps(*service.data)
-    await _apply_service(Timebox.send_message, service.data.get("data"))
-#DEVICES[0], 
+    # TODO Pass without fields directly in data
+    await _apply_service(Timebox.send_message, service.data.get("fields")) 
 
 async def _apply_service(service_func, *service_func_args):
-    #message = service.data.get("message")
     for device in DEVICES:
-        await service_func(device, *service_func_args) #message, 
+        await service_func(device, *service_func_args)
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
