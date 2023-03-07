@@ -50,13 +50,12 @@ class Timebox():
         self._brightness = brightness
 
     def turn_on(self):
-        self.send_brightness(50)
+        self.send_brightness(self._brightness)
         self._brightness = 50
         self._is_on = True
 
     def turn_off(self):
         self.send_brightness(0)
-        self._brightness = 0
         self._is_on = False
 
     def send_image(self, image):
