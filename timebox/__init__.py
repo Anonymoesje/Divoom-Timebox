@@ -11,6 +11,7 @@ from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, Platform, CONF_URL,
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_component import EntityComponent
+from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import DOMAIN, SERVICE_ACTION, TIMEOUT
 from .timebox import Timebox
@@ -28,8 +29,6 @@ PLATFORMS = [
     # "switch",
     "light"
 ]
-
-DEVICES = []
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
@@ -51,7 +50,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     timebox_name = entry_data[CONF_NAME]
     
     # Setup timebox singleton
-    timebox = Timebox(
+    coordinator = Timebox(
         hass,
         async_get_clientsession(hass, False), #TODO test with ssl
         timebox_url, 
@@ -61,42 +60,45 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         timebox_name
     )
 
-    DEVICES.append(timebox)
+    # await coordinator.async_refresh()
+    # if not coordinator.last_update_success:
+    #     raise ConfigEntryNotReady
+    
+    hass.data[DOMAIN][entry.entry_id] = coordinator
 
     #await component.async_add_entities(DEVICES, False)
     
-    if not timebox.isConnected():
+    if not coordinator.isConnected():
         _LOGGER.error("No connection to Timebox, check your bluetooth connection!")
-        return False # Return false because integration cannot operate without connection
+        raise ConnectionError("Timebox is not connected") # Abort setup because integration cannot operate without connection
     else:
-        _LOGGER.info("Timebox succesfully connected")
+        _LOGGER.error("Timebox succesfully connected")
 
 # Store an instance of the "connecting" class that does the work of speaking with the actual devices.
-    hass.data[DOMAIN][entry.entry_id] = timebox
     #hass.data.setdefault(DOMAIN, {})[entry.entry_id] = timebox
 
     # This creates each HA object for each platform your device requires.
     # It's done by calling the `async_setup_entry` function in each platform module.
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
 
-    await register_services(hass)
+    # await register_services(hass)
     return True
 
 
-async def register_services(hass) -> None:
-    """Register services after startup."""
-    _LOGGER.debug("Completing registering services.")
-    hass.services.async_register(DOMAIN, SERVICE_ACTION, _send_service)
-    return True
+# async def register_services(hass) -> None:
+#     """Register services after startup."""
+#     _LOGGER.debug("Completing registering services.")
+#     hass.services.async_register(DOMAIN, SERVICE_ACTION, _send_service)
+#     return True
 
-async def _send_service(service): 
-    #json.dumps(*service.data)
-    # TODO Pass without fields directly in data
-    await _apply_service(Timebox.send_message, service.data.get("fields")) 
+# async def _send_service(service): 
+#     #json.dumps(*service.data)
+#     # TODO Pass without fields directly in data
+#     await _apply_service(Timebox.send_message, service.data.get("fields")) 
 
-async def _apply_service(service_func, *service_func_args):
-    for device in DEVICES:
-        await service_func(device, *service_func_args)
+# async def _apply_service(service_func, *service_func_args):
+#     for device in DEVICES:
+#         await service_func(device, *service_func_args)
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""

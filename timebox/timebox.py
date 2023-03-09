@@ -23,6 +23,7 @@ class Timebox():
 
         self._is_on = None
         self._brightness = None
+        self._previous_brightness = None
         self._isConnected = None
 
     @property
@@ -39,24 +40,32 @@ class Timebox():
             if (response.status != 200):
                 _LOGGER.error(response.content)
                 _LOGGER.error(error_message)
-            _LOGGER.error(f"Status code: {response.status} reply is {response} content is {response.content} response will be {response.status == 200}")
+            _LOGGER.error(f"Request was: {requestUrl} data was {data} timeout was {TIMEOUT} Response was: status code: {response.status} reply is {response} content is {response.content} response will be {response.status == 200}")
             return response.status == 200
 
-    def send_brightness(self, brightness):
-        self.send_request('Failed to set brightness', '/brightness', data={"brightness": brightness, "mac": self.mac})
+    async def send_brightness(self, brightness):
+        return await self.send_request('Failed to set brightness', '/brightness', data={"brightness": brightness, "mac": self.mac})
 
-    def set_brightness(self, brightness):
+    async def set_brightness(self, brightness):
+        if (brightness is None):
+            _LOGGER.error("Failed to set brightness, brightness is none")
+            return False
         self.send_brightness(brightness)
         self._brightness = brightness
 
-    def turn_on(self):
-        self.send_brightness(self._brightness)
-        self._brightness = 50
+    async def turn_on(self, brightness):
         self._is_on = True
+        if (brightness is None):
+            if (self._previous_brightness is None):
+                self._previous_brightness = 50
+            return await self.send_brightness(self._previous_brightness) #self._brightness
+        else:
+            return await self.send_brightness(brightness) #self._brightness
 
-    def turn_off(self):
-        self.send_brightness(0)
+    async def turn_off(self):
         self._is_on = False
+        self._previous_brightness = self._brightness
+        return await self.send_brightness(0)
 
     def send_image(self, image):
         return self.send_request('Failed to send image', '/image', data={"mac": self.mac, "image": image}) #, files={"image": }
@@ -141,11 +150,17 @@ class Timebox():
                 _LOGGER.error(f"Invalid payload, {PARAM_TEXT} or message must be provided with {MODE_TEXT}")
                 return False
         elif (mode == MODE_BRIGHTNESS):
+            if (not f"{brightness}".isdigit()):
+                _LOGGER.error("Use a brightness number!")
+                return False
+            elif (brightness > 100 or brightness < 0):
+                _LOGGER.error(f"Use a brightness between 0 and 100! Payload {data.get(PARAM_BRIGHTNESS)} is invalid!")
+                return False
             try:
                 brightness = int(data.get(PARAM_BRIGHTNESS))
                 return await self.set_brightness(brightness)
-            except Exception:
-                _LOGGER.error(f"Invalid payload, {PARAM_BRIGHTNESS}={data.get(PARAM_BRIGHTNESS)}")
+            except Exception as ex:
+                _LOGGER.error(str(ex))
                 return False
         elif (mode == MODE_TIME):
             set_datetime = data.get(PARAM_SET_DATETIME)
