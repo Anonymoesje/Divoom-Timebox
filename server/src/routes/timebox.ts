@@ -63,7 +63,7 @@ router.post('/text', isLogged, validateMiddleware(TextBody), withTimebox(), asyn
 router.post('/time', isLogged, withTimebox(), async (req, res) => {
     try {
         const r = (new TimeboxEvo()).createRequest('time') as TimeChannel;
-
+        // r.color = "green" //TODO set color
         if (!req.body.display_type || req.body.display_type == "fullscreen") {
             r.type = TIMEBOX_CONST.TimeType.FullScreen;
         } else if (req.body.display_type == "rainbow") {
